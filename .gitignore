@@ -1,0 +1,8 @@
+.qmake.stash
+Makefile
+*.o
+b0_bubbleRob
+b0_bubbleRob.exe
+Makefile.Debug
+Makefile.Release
+*.user
