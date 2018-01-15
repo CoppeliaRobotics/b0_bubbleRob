@@ -9,7 +9,8 @@
 #endif
 
 // Global variables (also modified by the topic subscriber):
-bool sensorTrigger=false;
+int sensorTrigger=0;
+int pauseFlag=0;
 unsigned int currentTime_updatedByTopicSubscriber=0;
 float simulationTime=0.0;
 
@@ -37,15 +38,21 @@ int timeInMs()
 #endif
 
 // Topic subscriber callbacks:
-void sensorCallback(bool sensTrigger)
+void sensorCallback(std::string sensTrigger_packedInt)
 {
-    currentTime_updatedByTopicSubscriber=timeInMs();
-    sensorTrigger=sensTrigger;
+    sensorTrigger=((int*)sensTrigger_packedInt.c_str())[0];
 }
 
-void simulationTimeCallback(float simTime)
+void simulationTimeCallback(std::string simTime_packedFloat)
 {
-    simulationTime=simTime;
+    simulationTime=((float*)simTime_packedFloat.c_str())[0];
+    currentTime_updatedByTopicSubscriber=timeInMs()/1000;
+}
+
+void pauseCallback(std::string pauseFlag_packedInt)
+{
+    pauseFlag=((int*)pauseFlag_packedInt.c_str())[0];;
+    currentTime_updatedByTopicSubscriber=timeInMs()/1000;
 }
 
 // Main code:
@@ -55,17 +62,19 @@ int main(int argc,char* argv[])
     std::string rightMotorTopic;
     std::string sensorTopic;
     std::string simTimeTopic;
+    std::string pauseTopic;
 
-    if (argc>=5)
+    if (argc>=6)
     {
         leftMotorTopic=argv[1];
         rightMotorTopic=argv[2];
         sensorTopic=argv[3];
         simTimeTopic=argv[4];
+        pauseTopic=argv[5];
     }
     else
     {
-        printf("Indicate following arguments: 'leftMotorTopic rightMotorTopic sensorTopic simTimeTopic'!\n");
+        printf("Indicate following arguments: 'leftMotorTopic rightMotorTopic sensorTopic simTimeTopic pauseFlagTopic'!\n");
         SLEEP(5000);
         return 0;
     }
@@ -78,13 +87,14 @@ int main(int argc,char* argv[])
     b0::Node node(nodeName.c_str());
 
 
-    // 1. Let's subscribe to the sensor and simulation time stream
-    b0::Subscriber<bool> sub_sensor(&node,sensorTopic.c_str(),&sensorCallback);
-    b0::Subscriber<float> sub_simTime(&node,simTimeTopic.c_str(),&simulationTimeCallback);
+    // 1. Let's subscribe to the sensor, simulation time and pause flag stream:
+    b0::Subscriber<std::string> sub_sensor(&node,sensorTopic.c_str(),&sensorCallback);
+    b0::Subscriber<std::string> sub_simTime(&node,simTimeTopic.c_str(),&simulationTimeCallback);
+    b0::Subscriber<std::string> sub_pause(&node,pauseTopic.c_str(),&pauseCallback);
 
     // 2. Let's prepare publishers for the motor speeds:
-    b0::Publisher<float> pub_leftMotor(&node,leftMotorTopic.c_str());
-    b0::Publisher<float> pub_rightMotor(&node,rightMotorTopic.c_str());
+    b0::Publisher<std::string> pub_leftMotor(&node,leftMotorTopic.c_str());
+    b0::Publisher<std::string> pub_rightMotor(&node,rightMotorTopic.c_str());
 
     node.init();
 
@@ -98,33 +108,40 @@ int main(int argc,char* argv[])
     while (!node.shutdownRequested())
     { // this is the control loop (very simple, just as an example)
         currentTime=timeInMs()/1000;
-        if (currentTime-currentTime_updatedByTopicSubscriber>9)
-            break; // we didn't receive any sensor information for quite a while... we leave
-        float desiredLeftMotorSpeed;
-        float desiredRightMotorSpeed;
-        if (simulationTime-driveBackStartTime<3.0f)
-        { // driving backwards while slightly turning:
-            desiredLeftMotorSpeed=-3.1415f*0.5;
-            desiredRightMotorSpeed=-3.1415f*0.25;
-        }
-        else
-        { // going forward:
-            desiredLeftMotorSpeed=3.1415f;
-            desiredRightMotorSpeed=3.1415f;
-            if (sensorTrigger)
-                driveBackStartTime=simulationTime; // We detected something, and start the backward mode
-            sensorTrigger=false;
+
+        if (pauseFlag==0)
+        { // simulation not paused
+            if (currentTime-currentTime_updatedByTopicSubscriber>9)
+                break; // we didn't receive any sensor information for quite a while... we leave
+            float desiredLeftMotorSpeed;
+            float desiredRightMotorSpeed;
+            if (simulationTime-driveBackStartTime<3.0f)
+            { // driving backwards while slightly turning:
+                desiredLeftMotorSpeed=-3.1415f*0.5;
+                desiredRightMotorSpeed=-3.1415f*0.25;
+            }
+            else
+            { // going forward:
+                desiredLeftMotorSpeed=3.1415f;
+                desiredRightMotorSpeed=3.1415f;
+                if (sensorTrigger>0)
+                    driveBackStartTime=simulationTime; // We detected something, and start the backward mode
+                sensorTrigger=0;
+            }
+
+            // publish the motor speeds:
+            std::string buff;
+            buff=(char*)(&desiredLeftMotorSpeed);
+            pub_leftMotor.publish(buff);
+            buff=(char*)(&desiredRightMotorSpeed);
+            pub_rightMotor.publish(buff);
         }
 
-        // publish the motor speeds:
-        pub_leftMotor.publish(desiredLeftMotorSpeed);
-        pub_rightMotor.publish(desiredRightMotorSpeed);
-
-        // handle ROS messages:
+        // handle B0 messages:
         node.spinOnce();
 
         // sleep a bit:
-        SLEEP(5);
+        SLEEP(20);
     }
     node.cleanup();
     printf("b0_bubbleRob just ended!\n");
