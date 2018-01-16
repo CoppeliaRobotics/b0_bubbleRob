@@ -49,6 +49,7 @@ macx {
 }
 
 unix:!macx {
+    LIBS += -lboost_system
 }
 
 
