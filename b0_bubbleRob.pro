@@ -46,6 +46,7 @@ win32 {
 }
 
 macx {
+    LIBS += -lboost_system
 }
 
 unix:!macx {
