@@ -43,21 +43,17 @@ LIBS += -L$$BOOST_LIB_PATH
 
 win32 {
     LIBS += -lwinmm
-    LIBS += -lWs2_32
 }
 
 macx {
 }
 
 unix:!macx {
-    LIBS += -lrt
 }
 
 
 SOURCES += \
     b0_bubbleRob.cpp \
-
-HEADERS +=\
 
 unix:!symbian {
     maemo5 {
