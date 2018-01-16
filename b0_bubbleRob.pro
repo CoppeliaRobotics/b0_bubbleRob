@@ -42,7 +42,6 @@ LIBS += -L$$BOOST_LIB_PATH
 
 
 win32 {
-    LIBS += -lwinmm
 }
 
 macx {

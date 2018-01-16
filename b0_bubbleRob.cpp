@@ -13,28 +13,12 @@ int sensorTrigger=0;
 int pauseFlag=0;
 unsigned int currentTime_updatedByTopicSubscriber=0;
 float simulationTime=0.0;
-
-int timeInMs()
-{
-    #ifdef _WIN32
-        unsigned int t=timeGetTime();
-        static unsigned int startT=t;
-        if (t>=startT)
-            return((t-startT)&0x8fffffff);
-        return((t+(0xffffffff-startT))&0x8fffffff);
-    #else
-        struct timeval now;
-        gettimeofday(&now,NULL);
-        static time_t initSec=now.tv_sec;
-        static suseconds_t initUSec=now.tv_usec;
-        return((now.tv_sec-initSec)*1000+(now.tv_usec-initUSec)/1000);
-    #endif
-}
+b0::Node* node=NULL;
 
 #ifdef _WIN32
-    #define SLEEP Sleep
+    #define SLEEP_MS(x) Sleep(x)
 #else
-    #define SLEEP sleep
+    #define SLEEP_MS(X) usleep(x*1000)
 #endif
 
 // Topic subscriber callbacks:
@@ -46,13 +30,13 @@ void sensorCallback(std::string sensTrigger_packedInt)
 void simulationTimeCallback(std::string simTime_packedFloat)
 {
     simulationTime=((float*)simTime_packedFloat.c_str())[0];
-    currentTime_updatedByTopicSubscriber=timeInMs()/1000;
+    currentTime_updatedByTopicSubscriber=int(node->timeUSec()/1000000);
 }
 
 void pauseCallback(std::string pauseFlag_packedInt)
 {
     pauseFlag=((int*)pauseFlag_packedInt.c_str())[0];;
-    currentTime_updatedByTopicSubscriber=timeInMs()/1000;
+    currentTime_updatedByTopicSubscriber=int(node->timeUSec()/1000000);
 }
 
 // Main code:
@@ -75,39 +59,34 @@ int main(int argc,char* argv[])
     else
     {
         printf("Indicate following arguments: 'leftMotorTopic rightMotorTopic sensorTopic simTimeTopic pauseFlagTopic'!\n");
-        SLEEP(5000);
+        SLEEP_MS(5000);
         return 0;
     }
 
-    // Create a B0 node. The name has a random component:
-    currentTime_updatedByTopicSubscriber=timeInMs();
-    std::string nodeName("b0_bubbleRob");
-    std::string randId(boost::lexical_cast<std::string>(currentTime_updatedByTopicSubscriber+int(999999.0f*(rand()/(float)RAND_MAX))));
-    nodeName+=randId;
-    b0::Node node(nodeName.c_str());
-
+    // Create a B0 node.
+    node=new b0::Node("b0_bubbleRob");
 
     // 1. Let's subscribe to the sensor, simulation time and pause flag stream:
-    b0::Subscriber<std::string> sub_sensor(&node,sensorTopic.c_str(),&sensorCallback);
-    b0::Subscriber<std::string> sub_simTime(&node,simTimeTopic.c_str(),&simulationTimeCallback);
-    b0::Subscriber<std::string> sub_pause(&node,pauseTopic.c_str(),&pauseCallback);
+    b0::Subscriber<std::string> sub_sensor(node,sensorTopic.c_str(),&sensorCallback);
+    b0::Subscriber<std::string> sub_simTime(node,simTimeTopic.c_str(),&simulationTimeCallback);
+    b0::Subscriber<std::string> sub_pause(node,pauseTopic.c_str(),&pauseCallback);
 
     // 2. Let's prepare publishers for the motor speeds:
-    b0::Publisher<std::string> pub_leftMotor(&node,leftMotorTopic.c_str());
-    b0::Publisher<std::string> pub_rightMotor(&node,rightMotorTopic.c_str());
+    b0::Publisher<std::string> pub_leftMotor(node,leftMotorTopic.c_str());
+    b0::Publisher<std::string> pub_rightMotor(node,rightMotorTopic.c_str());
 
-    node.init();
+    node->init();
 
     // 3. Finally we have the control loop:
     float driveBackStartTime=-99.0f;
     unsigned int currentTime;
 
-    currentTime_updatedByTopicSubscriber=timeInMs()/1000;
+    currentTime_updatedByTopicSubscriber=int(node->timeUSec()/1000000);
     currentTime=currentTime_updatedByTopicSubscriber;
 
-    while (!node.shutdownRequested())
+    while (!node->shutdownRequested())
     { // this is the control loop (very simple, just as an example)
-        currentTime=timeInMs()/1000;
+        currentTime=int(node->timeUSec()/1000000);
 
         if (pauseFlag==0)
         { // simulation not paused
@@ -138,12 +117,13 @@ int main(int argc,char* argv[])
         }
 
         // handle B0 messages:
-        node.spinOnce();
+        node->spinOnce();
 
         // sleep a bit:
-        SLEEP(20);
+        SLEEP_MS(20);
     }
-    node.cleanup();
+    node->cleanup();
+    delete node;
     printf("b0_bubbleRob just ended!\n");
     return(0);
 }
