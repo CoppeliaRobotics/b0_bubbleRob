@@ -18,7 +18,7 @@ b0::Node* node=NULL;
 #ifdef _WIN32
     #define SLEEP_MS(x) Sleep(x)
 #else
-    #define SLEEP_MS(X) usleep(x*1000)
+    #define SLEEP_MS(x) usleep(x*1000)
 #endif
 
 // Topic subscriber callbacks:
