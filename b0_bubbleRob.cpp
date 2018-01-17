@@ -64,7 +64,8 @@ int main(int argc,char* argv[])
     }
 
     // Create a B0 node.
-    node=new b0::Node("b0_bubbleRob");
+    b0::Node _node("b0_bubbleRob");
+    node=&_node;
 
     // 1. Let's subscribe to the sensor, simulation time and pause flag stream:
     b0::Subscriber<std::string> sub_sensor(node,sensorTopic.c_str(),&sensorCallback);
@@ -123,7 +124,6 @@ int main(int argc,char* argv[])
         SLEEP_MS(20);
     }
     node->cleanup();
-    delete node;
     printf("b0_bubbleRob just ended!\n");
     return(0);
 }
