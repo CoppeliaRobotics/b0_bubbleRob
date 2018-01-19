@@ -5,9 +5,6 @@
 # location of B0 headers:
     B0_INCLUDEPATH = "../blueZero/include"    # (e.g. Windows)
 
-# location of protobuf headers:
-    PROTOBUF_INCLUDEPATH = "d:/protobuf-3.5.0/src"    # (e.g. Windows)
-
 # B0 libraries to link:
     B0_LIBS = "../blueZero/build/Release/b0.lib"    # (e.g. Windows)
 

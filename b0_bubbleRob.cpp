@@ -22,18 +22,18 @@ b0::Node* node=NULL;
 #endif
 
 // Topic subscriber callbacks:
-void sensorCallback(std::string sensTrigger_packedInt)
+void sensorCallback(const std::string &sensTrigger_packedInt)
 {
     sensorTrigger=((int*)sensTrigger_packedInt.c_str())[0];
 }
 
-void simulationTimeCallback(std::string simTime_packedFloat)
+void simulationTimeCallback(const std::string &simTime_packedFloat)
 {
     simulationTime=((float*)simTime_packedFloat.c_str())[0];
     currentTime_updatedByTopicSubscriber=int(node->timeUSec()/1000000);
 }
 
-void pauseCallback(std::string pauseFlag_packedInt)
+void pauseCallback(const std::string &pauseFlag_packedInt)
 {
     pauseFlag=((int*)pauseFlag_packedInt.c_str())[0];;
     currentTime_updatedByTopicSubscriber=int(node->timeUSec()/1000000);
@@ -68,13 +68,13 @@ int main(int argc,char* argv[])
     node=&_node;
 
     // 1. Let's subscribe to the sensor, simulation time and pause flag stream:
-    b0::Subscriber<std::string> sub_sensor(node,sensorTopic.c_str(),&sensorCallback);
-    b0::Subscriber<std::string> sub_simTime(node,simTimeTopic.c_str(),&simulationTimeCallback);
-    b0::Subscriber<std::string> sub_pause(node,pauseTopic.c_str(),&pauseCallback);
+    b0::Subscriber sub_sensor(node,sensorTopic.c_str(),&sensorCallback);
+    b0::Subscriber sub_simTime(node,simTimeTopic.c_str(),&simulationTimeCallback);
+    b0::Subscriber sub_pause(node,pauseTopic.c_str(),&pauseCallback);
 
     // 2. Let's prepare publishers for the motor speeds:
-    b0::Publisher<std::string> pub_leftMotor(node,leftMotorTopic.c_str());
-    b0::Publisher<std::string> pub_rightMotor(node,rightMotorTopic.c_str());
+    b0::Publisher pub_leftMotor(node,leftMotorTopic.c_str());
+    b0::Publisher pub_rightMotor(node,rightMotorTopic.c_str());
 
     node->init();
 
