@@ -13,7 +13,7 @@ int sensorTrigger=0;
 int pauseFlag=0;
 unsigned int currentTime_updatedByTopicSubscriber=0;
 float simulationTime=0.0;
-b0::Node* node=NULL;
+b0::Node* node=nullptr;
 
 #ifdef _WIN32
     #define SLEEP_MS(x) Sleep(x)
@@ -64,6 +64,7 @@ int main(int argc,char* argv[])
     }
 
     // Create a B0 node.
+    b0::init();
     b0::Node _node("b0_bubbleRob");
     node=&_node;
 
