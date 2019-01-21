@@ -3,7 +3,6 @@
 #include <b0/subscriber.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <boost/lexical_cast.hpp>
 #ifdef _WIN32
     #include <Windows.h>
 #endif
