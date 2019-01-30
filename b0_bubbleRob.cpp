@@ -10,7 +10,7 @@
 // Global variables (also modified by the topic subscriber):
 int sensorTrigger=0;
 int pauseFlag=0;
-unsigned int currentTime_updatedByTopicSubscriber=0;
+long currentTime_updatedByTopicSubscriber=0;
 float simulationTime=0.0;
 b0::Node* node=nullptr;
 
@@ -29,13 +29,13 @@ void sensorCallback(const std::string &sensTrigger_packedInt)
 void simulationTimeCallback(const std::string &simTime_packedFloat)
 {
     simulationTime=((float*)simTime_packedFloat.c_str())[0];
-    currentTime_updatedByTopicSubscriber=int(node->timeUSec()/1000000);
+    currentTime_updatedByTopicSubscriber=(long)node->hardwareTimeUSec()/1000;
 }
 
 void pauseCallback(const std::string &pauseFlag_packedInt)
 {
     pauseFlag=((int*)pauseFlag_packedInt.c_str())[0];;
-    currentTime_updatedByTopicSubscriber=int(node->timeUSec()/1000000);
+    currentTime_updatedByTopicSubscriber=(long)node->hardwareTimeUSec()/1000;
 }
 
 // Main code:
@@ -80,18 +80,18 @@ int main(int argc,char* argv[])
 
     // 3. Finally we have the control loop:
     float driveBackStartTime=-99.0f;
-    unsigned int currentTime;
+    long currentTime;
 
-    currentTime_updatedByTopicSubscriber=int(node->timeUSec()/1000000);
+    currentTime_updatedByTopicSubscriber=(long)node->hardwareTimeUSec()/1000;
     currentTime=currentTime_updatedByTopicSubscriber;
 
     while (!node->shutdownRequested())
     { // this is the control loop (very simple, just as an example)
-        currentTime=int(node->timeUSec()/1000000);
+        currentTime=(long)node->hardwareTimeUSec()/1000;
 
         if (pauseFlag==0)
         { // simulation not paused
-            if (currentTime-currentTime_updatedByTopicSubscriber>9)
+            if (currentTime-currentTime_updatedByTopicSubscriber>8000)
                 break; // we didn't receive any sensor information for quite a while... we leave
             float desiredLeftMotorSpeed;
             float desiredRightMotorSpeed;
