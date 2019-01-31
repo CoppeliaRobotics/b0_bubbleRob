@@ -6,3 +6,5 @@ b0_bubbleRob.exe
 Makefile.Debug
 Makefile.Release
 *.user*
+debug
+release
