@@ -53,7 +53,6 @@ win32 {
 
 macx {
     LIBS += $$B0_LIB
-    LIBS += -lboost_system
 }
 
 unix:!macx {
