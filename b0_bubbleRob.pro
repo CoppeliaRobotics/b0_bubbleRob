@@ -9,10 +9,17 @@ TEMPLATE = app
 DEFINES -= UNICODE
 CONFIG   += console
 CONFIG   -= app_bundle
+CONFIG   += CPPVERSION
+
+CPPVERSION {
+    DEFINES += CPP_VERSION
+    INCLUDEPATH += $$B0_INCLUDEPATH
+    INCLUDEPATH += $$B0_INCLUDEPATH/../build/include
+} else {
+    INCLUDEPATH += $$B0_INCLUDEPATH/b0/bindings
+}
 
 INCLUDEPATH += $$BOOST_INCLUDEPATH
-INCLUDEPATH += $$B0_INCLUDEPATH
-INCLUDEPATH += $$B0_INCLUDEPATH/../build/include
 
 *-msvc* {
     QMAKE_CXXFLAGS += -O2
@@ -39,15 +46,19 @@ INCLUDEPATH += $$B0_INCLUDEPATH/../build/include
 }
 
 win32 {
-    LIBS += $$B0_LIB_STATIC
-    LIBS += $$ZMQ_LIB
-    LIBS += $$ZLIB_LIB
-    LIBS += "boost_system-vc140-mt.lib"
-    LIBS += "boost_thread-vc140-mt.lib"
-    LIBS += "boost_regex-vc140-mt.lib"
-    LIBS += "boost_date_time-vc140-mt.lib"
-    LIBS += "boost_filesystem-vc140-mt.lib"
-    LIBS += "boost_program_options-vc140-mt.lib"
+    CPPVERSION { # on Windows, currently only with static lib (B0 issue)
+        LIBS += $$B0_LIB_STATIC
+        LIBS += $$ZMQ_LIB
+        LIBS += $$ZLIB_LIB
+        LIBS += "boost_system-vc140-mt.lib"
+        LIBS += "boost_thread-vc140-mt.lib"
+        LIBS += "boost_regex-vc140-mt.lib"
+        LIBS += "boost_date_time-vc140-mt.lib"
+        LIBS += "boost_filesystem-vc140-mt.lib"
+        LIBS += "boost_program_options-vc140-mt.lib"
+    } else {
+        LIBS += $$B0_LIB
+    }
     LIBS += -L$$BOOST_LIB_PATH
 }
 
