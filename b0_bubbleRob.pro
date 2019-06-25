@@ -50,6 +50,7 @@ win32 {
         LIBS += $$B0_LIB_STATIC
         LIBS += $$ZMQ_LIB
         LIBS += $$ZLIB_LIB
+        LIBS += $$LZ4_LIB
         LIBS += "boost_system-vc140-mt.lib"
         LIBS += "boost_thread-vc140-mt.lib"
         LIBS += "boost_regex-vc140-mt.lib"
