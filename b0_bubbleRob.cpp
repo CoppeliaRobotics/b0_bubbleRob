@@ -153,21 +153,21 @@ int main(int argc,char* argv[])
             float desiredRightMotorSpeed;
             if (simulationTime-driveBackStartTime<3.0f)
             { // driving backwards while slightly turning:
-                desiredLeftMotorSpeed=-3.1415f*0.5;
-                desiredRightMotorSpeed=-3.1415f*0.25;
+                desiredLeftMotorSpeed=-7.0f*0.5;
+                desiredRightMotorSpeed=-7.0f*0.25;
             }
             else
             { // going forward:
-                desiredLeftMotorSpeed=3.1415f;
-                desiredRightMotorSpeed=3.1415f;
+                desiredLeftMotorSpeed=7.0f;
+                desiredRightMotorSpeed=7.0f;
                 if (sensorTrigger>0)
                     driveBackStartTime=simulationTime; // We detected something, and start the backward mode
                 sensorTrigger=0;
             }
 
             // publish the motor speeds:
-            std::string buff1=(char*)(&desiredLeftMotorSpeed);
-            std::string buff2=(char*)(&desiredRightMotorSpeed);
+            std::string buff1((char*)(&desiredLeftMotorSpeed),4);
+            std::string buff2((char*)(&desiredRightMotorSpeed),4);
 #ifdef CPP_VERSION
             pub_leftMotor.publish(buff1);
             pub_rightMotor.publish(buff2);
