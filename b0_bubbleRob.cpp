@@ -11,8 +11,9 @@
     b0::Node* node=nullptr;
 #else
     #include <string>
+    #include <unistd.h>
     extern "C" {
-    #include <c.h>
+    #include <b0/bindings/c.h>
     }
     b0_node* node=nullptr;
 #endif
