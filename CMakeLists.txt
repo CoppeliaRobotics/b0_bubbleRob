@@ -19,8 +19,7 @@ list(APPEND CMAKE_MODULE_PATH
 find_package(CoppeliaSim 4.1.0.0 REQUIRED)
 find_package(BlueZero REQUIRED)
 
-
-add_executable(b0_bubbleRob b0_bubbleRob.cpp)
+coppeliasim_add_executable(b0_bubbleRob SOURCES b0_bubbleRob.cpp)
 target_compile_definitions(b0_bubbleRob PRIVATE CPP_VERSION)
 target_include_directories(b0_bubbleRob PRIVATE ${BLUEZERO_INCLUDE_DIRS})
 target_link_libraries(b0_bubbleRob Boost::system)
